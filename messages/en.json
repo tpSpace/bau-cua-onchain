@@ -1,0 +1,52 @@
+{
+  "common": {
+    "connectWallet": "Connect Wallet",
+    "playNow": "Play Now",
+    "language": "Language"
+  },
+  "home": {
+    "title": "Vietnamese Dice Game",
+    "subtitle": "Traditional Vietnamese game on Sui blockchain",
+    "description": "Place your bets, roll the dice, and win big!",
+    "tagline": "Transparent and fair with blockchain technology"
+  },
+  "symbols": {
+    "bau": "Gourd",
+    "cua": "Crab", 
+    "tom": "Shrimp",
+    "ca": "Fish",
+    "ga": "Rooster",
+    "nai": "Deer"
+  },
+  "features": {
+    "fair": {
+      "title": "100% Fair",
+      "description": "Smart contracts ensure transparency"
+    },
+    "fast": {
+      "title": "Instant Payouts",
+      "description": "Receive winnings immediately"
+    },
+    "smooth": {
+      "title": "Smooth Experience",
+      "description": "Beautiful, easy-to-use interface"
+    },
+    "multiplayer": {
+      "title": "Play with Friends",
+      "description": "LAN support and private rooms"
+    }
+  },
+  "multiplayer": {
+    "title": "Play with Friends",
+    "subtitle": "Create private rooms or join via LAN network",
+    "features": {
+      "lan": "Local LAN connection",
+      "private": "Private rooms",
+      "friends": "Invite friends to join",
+      "realtime": "Real-time synchronization"
+    }
+  },
+  "footer": {
+    "copyright": "© 2025 Vietnamese Dice Game On-Chain. Powered by Sui Blockchain."
+  }
+}

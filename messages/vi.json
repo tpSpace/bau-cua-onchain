@@ -1,0 +1,52 @@
+{
+  "common": {
+    "connectWallet": "Kết nối ví",
+    "playNow": "Bắt đầu chơi ngay",
+    "language": "Ngôn ngữ"
+  },
+  "home": {
+    "title": "Bầu Cua Tôm Cá",
+    "subtitle": "Trò chơi truyền thống Việt Nam trên blockchain Sui",
+    "description": "Đặt cược, tung xúc xắc, và thắng lớn!",
+    "tagline": "Minh bạch, công bằng với công nghệ blockchain"
+  },
+  "symbols": {
+    "bau": "Bầu",
+    "cua": "Cua", 
+    "tom": "Tôm",
+    "ca": "Cá",
+    "ga": "Gà",
+    "nai": "Nai"
+  },
+  "features": {
+    "fair": {
+      "title": "Công bằng 100%",
+      "description": "Smart contract đảm bảo tính minh bạch"
+    },
+    "fast": {
+      "title": "Thanh toán nhanh",
+      "description": "Nhận tiền thưởng ngay lập tức"
+    },
+    "smooth": {
+      "title": "Trải nghiệm mượt mà",
+      "description": "Giao diện đẹp, dễ sử dụng"
+    },
+    "multiplayer": {
+      "title": "Chơi với bạn bè",
+      "description": "Hỗ trợ LAN và phòng riêng tư"
+    }
+  },
+  "multiplayer": {
+    "title": "Chơi cùng bạn bè",
+    "subtitle": "Tạo phòng riêng hoặc tham gia qua mạng LAN",
+    "features": {
+      "lan": "Kết nối LAN địa phương",
+      "private": "Phòng riêng tư",
+      "friends": "Mời bạn bè tham gia",
+      "realtime": "Đồng bộ thời gian thực"
+    }
+  },
+  "footer": {
+    "copyright": "© 2025 Bầu Cua Tôm Cá On-Chain. Powered by Sui Blockchain."
+  }
+}
