@@ -2,7 +2,8 @@
   "common": {
     "connectWallet": "Kết nối ví",
     "playNow": "Bắt đầu chơi ngay",
-    "language": "Ngôn ngữ"
+    "language": "Ngôn ngữ",
+    "home": "Trang chủ"
   },
   "home": {
     "title": "Bầu Cua Tôm Cá",
@@ -45,6 +46,19 @@
       "friends": "Mời bạn bè tham gia",
       "realtime": "Đồng bộ thời gian thực"
     }
+  },
+  "game": {
+    "subtitle": "Đặt cược và tung xúc xắc để thắng lớn!",
+    "bettingBoard": "Bảng Cược",
+    "balance": "Số dư",
+    "bet": "Cược",
+    "roll": "Tung",
+    "clear": "Xóa",
+    "rolling": "Đang tung...",
+    "diceResults": "Kết quả xúc xắc",
+    "lastWinnings": "Thắng lần cuối",
+    "history": "Lịch sử",
+    "noGames": "Chưa có trò chơi nào"
   },
   "footer": {
     "copyright": "© 2025 Bầu Cua Tôm Cá On-Chain. Powered by Sui Blockchain."

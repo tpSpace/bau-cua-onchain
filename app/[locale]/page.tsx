@@ -6,6 +6,8 @@ import { FloatingParticles } from "@/components/FloatingParticles";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Dice1, Dice2, Dice3, Play, Star, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 // Traditional Bau Cua Tom Ca symbols
 const getGameSymbols = (t: (key: string) => string) => [
@@ -19,6 +21,8 @@ const getGameSymbols = (t: (key: string) => string) => [
 
 export default function Home() {
   const t = useTranslations();
+  const params = useParams();
+  const locale = params.locale as string;
   const gameSymbols = getGameSymbols(t);
 
   return (
@@ -162,30 +166,32 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1 }}
         >
-          <motion.button
-            className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-xl px-12 py-4 rounded-full shadow-2xl flex items-center gap-3 hover:shadow-yellow-400/50"
-            whileHover={{
-              scale: 1.05,
-              boxShadow: "0 20px 40px rgba(251, 191, 36, 0.4)",
-            }}
-            whileTap={{ scale: 0.95 }}
-            animate={{
-              boxShadow: [
-                "0 0 20px rgba(251, 191, 36, 0.3)",
-                "0 0 40px rgba(251, 191, 36, 0.6)",
-                "0 0 20px rgba(251, 191, 36, 0.3)",
-              ],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          >
-            <Play className="w-6 h-6" />
-            {t("common.playNow")}
-            <Sparkles className="w-6 h-6" />
-          </motion.button>
+          <Link href={`/${locale}/game`}>
+            <motion.button
+              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-xl px-12 py-4 rounded-full shadow-2xl flex items-center gap-3 hover:shadow-yellow-400/50"
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 20px 40px rgba(251, 191, 36, 0.4)",
+              }}
+              whileTap={{ scale: 0.95 }}
+              animate={{
+                boxShadow: [
+                  "0 0 20px rgba(251, 191, 36, 0.3)",
+                  "0 0 40px rgba(251, 191, 36, 0.6)",
+                  "0 0 20px rgba(251, 191, 36, 0.3)",
+                ],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <Play className="w-6 h-6" />
+              {t("common.playNow")}
+              <Sparkles className="w-6 h-6" />
+            </motion.button>
+          </Link>
 
           <motion.div
             className="flex items-center gap-2 text-yellow-200"

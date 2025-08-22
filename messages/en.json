@@ -2,7 +2,8 @@
   "common": {
     "connectWallet": "Connect Wallet",
     "playNow": "Play Now",
-    "language": "Language"
+    "language": "Language",
+    "home": "Home"
   },
   "home": {
     "title": "Vietnamese Dice Game",
@@ -45,6 +46,19 @@
       "friends": "Invite friends to join",
       "realtime": "Real-time synchronization"
     }
+  },
+  "game": {
+    "subtitle": "Place your bets and roll the dice to win big!",
+    "bettingBoard": "Betting Board",
+    "balance": "Balance",
+    "bet": "Bet",
+    "roll": "Roll",
+    "clear": "Clear",
+    "rolling": "Rolling...",
+    "diceResults": "Dice Results",
+    "lastWinnings": "Last Winnings",
+    "history": "History",
+    "noGames": "No games played yet"
   },
   "footer": {
     "copyright": "© 2025 Vietnamese Dice Game On-Chain. Powered by Sui Blockchain."
