@@ -42,6 +42,11 @@ public entry fun admin_withdraw(
     transfer::public_transfer(payout, recipient);
 }
 
+/// Anyone can donate SUI to the bank.
+public entry fun donate(bank: &mut Bank, gift: Coin<SUI>) {
+    coin::join(&mut bank.treasury, gift);
+}
+
 /// Play one round using secure randomness from `sui::random::Random`.
 /// - `bank`: shared game bank
 /// - `rnd`: the global Random object (shared)
