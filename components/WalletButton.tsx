@@ -30,7 +30,7 @@ export function WalletButton() {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow"
+            className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow cursor-pointer"
           >
             {currentAccount ? "Change Wallet" : t("connectWallet")}
           </button>
@@ -41,7 +41,7 @@ export function WalletButton() {
         <button
           type="button"
           onClick={() => disconnect()}
-          className="flex items-center gap-2 border border-white/20 text-white px-3 py-2 rounded-lg text-sm hover:bg-white/10"
+          className="flex items-center gap-2 border border-white/20 text-white px-3 py-2 rounded-lg text-sm hover:bg-white/10 cursor-pointer"
         >
           <Wallet className="w-4 h-4" />
           <span className="font-medium">

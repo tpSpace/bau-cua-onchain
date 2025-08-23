@@ -47,7 +47,7 @@ export function MessageDisplay({
           <p className="text-red-100">{error}</p>
           <button
             onClick={onClearError}
-            className="ml-auto text-red-400 hover:text-red-300"
+            className="ml-auto text-red-400 hover:text-red-300 cursor-pointer"
           >
             ×
           </button>

@@ -168,7 +168,7 @@ export default function Home() {
         >
           <Link href={`/${locale}/game`}>
             <motion.button
-              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-xl px-12 py-4 rounded-full shadow-2xl flex items-center gap-3 hover:shadow-yellow-400/50"
+              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-xl px-12 py-4 rounded-full shadow-2xl flex items-center gap-3 hover:shadow-yellow-400/50 cursor-pointer"
               whileHover={{
                 scale: 1.05,
                 boxShadow: "0 20px 40px rgba(251, 191, 36, 0.4)",

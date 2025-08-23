@@ -50,7 +50,7 @@ export function BettingBoard({
           <motion.button
             key={symbol.id}
             onClick={() => onAddBet(symbol.id)}
-            className={`relative p-6 rounded-xl border-2 transition-all duration-300 ${
+            className={`relative p-6 rounded-xl border-2 transition-all duration-300 cursor-pointer ${
               getBetAmount(symbol.id) > 0
                 ? "border-yellow-400 bg-yellow-400/20"
                 : "border-white/30 bg-white/5 hover:bg-white/10"
@@ -91,7 +91,7 @@ export function BettingBoard({
               key={amount}
               onClick={() => onSetCurrentBet(amount)}
               disabled={!isConnected}
-              className={`px-3 py-1 rounded-lg transition-colors disabled:opacity-50 ${
+              className={`px-3 py-1 rounded-lg transition-colors disabled:opacity-50 cursor-pointer ${
                 currentBet === amount
                   ? "bg-yellow-400 text-black"
                   : "bg-white/20 text-white hover:bg-white/30"
@@ -105,7 +105,7 @@ export function BettingBoard({
         <div className="flex gap-3">
           <motion.button
             onClick={onClearBets}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500/80 hover:bg-red-500 text-white rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-red-500/80 hover:bg-red-500 text-white rounded-lg transition-colors cursor-pointer"
             whileHover={{ scale: 1.05 }}
             disabled={bets.length === 0}
           >
@@ -115,7 +115,7 @@ export function BettingBoard({
 
           <motion.button
             onClick={onRollDice}
-            className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-bold transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-bold transition-all disabled:opacity-50 cursor-pointer"
             whileHover={{ scale: 1.05 }}
             disabled={bets.length === 0 || isPlaying || !isConnected}
           >

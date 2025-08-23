@@ -83,7 +83,7 @@ export function DiceResults({
             {/* Randomness Details Button */}
             <motion.button
               onClick={() => setShowRandomnessDetails(!showRandomnessDetails)}
-              className="flex items-center gap-2 mx-auto px-4 py-2 bg-blue-500/20 text-blue-300 rounded-lg border border-blue-400/30 hover:bg-blue-500/30 transition-all"
+              className="flex items-center gap-2 mx-auto px-4 py-2 bg-blue-500/20 text-blue-300 rounded-lg border border-blue-400/30 hover:bg-blue-500/30 transition-all cursor-pointer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -148,7 +148,7 @@ export function DiceResults({
                       href={`https://suiscan.xyz/testnet/tx/${randomnessDetails.transactionDigest}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-blue-400 hover:text-blue-300 underline font-mono text-sm break-all"
+                      className="block text-blue-400 hover:text-blue-300 underline font-mono text-sm break-all cursor-pointer"
                     >
                       {randomnessDetails.transactionDigest}
                     </a>

@@ -13,7 +13,11 @@ interface GameHeaderProps {
   bankBalance: number | null;
 }
 
-export function GameHeader({ isConnected, totalBalance, bankBalance }: GameHeaderProps) {
+export function GameHeader({
+  isConnected,
+  totalBalance,
+  bankBalance,
+}: GameHeaderProps) {
   const t = useTranslations();
 
   return (
@@ -25,7 +29,7 @@ export function GameHeader({ isConnected, totalBalance, bankBalance }: GameHeade
       <div className="flex items-center gap-4">
         <Link href="/">
           <motion.button
-            className="flex items-center gap-2 text-white hover:text-yellow-300 transition-colors"
+            className="flex items-center gap-2 text-white hover:text-yellow-300 transition-colors cursor-pointer"
             whileHover={{ scale: 1.05 }}
           >
             <Home className="w-5 h-5" />

@@ -33,7 +33,7 @@ export function RandomnessDetails({
         <h3 className="text-xl font-bold text-white">Randomness Details</h3>
         <button
           onClick={() => setShowRandomDetails(!showRandomDetails)}
-          className="text-yellow-300 hover:text-yellow-200 transition-colors"
+          className="text-yellow-300 hover:text-yellow-200 transition-colors cursor-pointer"
         >
           <Shuffle className="w-5 h-5" />
         </button>
@@ -134,7 +134,7 @@ export function RandomnessDetails({
                     href={`https://suiscan.xyz/testnet/tx/${randomnessDetails.transactionDigest}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-purple-300 hover:text-purple-200 font-mono text-sm underline"
+                    className="text-purple-300 hover:text-purple-200 font-mono text-sm underline cursor-pointer"
                   >
                     {randomnessDetails.transactionDigest?.slice(0, 8)}...
                   </a>

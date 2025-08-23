@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { RotateCcw, Loader2, Trophy, CheckCircle, Dices } from "lucide-react";
 import { gameSymbols } from "@/types/game";
 
@@ -18,6 +18,7 @@ export function GameHistory({
   onLoadContractHistory,
 }: GameHistoryProps) {
   const [currentLimit, setCurrentLimit] = useState(100);
+  const hasLoadedRef = useRef(false);
 
   // Debug logging
   console.log("GameHistory - contractHistory:", gameState.contractHistory);
@@ -28,11 +29,15 @@ export function GameHistory({
 
   // Auto-load contract history on component mount if not already loaded
   useEffect(() => {
-    if (!gameState.contractHistory || gameState.contractHistory.length === 0) {
+    if (
+      !hasLoadedRef.current &&
+      (!gameState.contractHistory || gameState.contractHistory.length === 0)
+    ) {
       console.log("GameHistory - Auto-loading contract history...");
+      hasLoadedRef.current = true;
       onLoadContractHistory(currentLimit);
     }
-  }, [onLoadContractHistory, gameState.contractHistory, currentLimit]);
+  }, [gameState.contractHistory, currentLimit]);
 
   const loadMoreHistory = () => {
     const newLimit = currentLimit + 50;
@@ -65,7 +70,7 @@ export function GameHistory({
           <motion.button
             onClick={() => onLoadContractHistory(currentLimit)}
             disabled={gameState.isLoadingHistory}
-            className="p-2 rounded-lg bg-blue-500/20 text-blue-300 hover:text-blue-200 hover:bg-blue-500/30 transition-all disabled:opacity-50 border border-blue-400/30"
+            className="p-2 rounded-lg bg-blue-500/20 text-blue-300 hover:text-blue-200 hover:bg-blue-500/30 transition-all disabled:opacity-50 border border-blue-400/30 cursor-pointer"
             title="Refresh from blockchain"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -252,7 +257,7 @@ export function GameHistory({
                       href={`https://suiscan.xyz/testnet/tx/${activity.digest}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-400 hover:text-blue-300 underline font-mono"
+                      className="text-blue-400 hover:text-blue-300 underline font-mono cursor-pointer"
                     >
                       {activity.digest.slice(0, 8)}...
                     </a>
@@ -317,7 +322,7 @@ export function GameHistory({
             >
               <motion.button
                 onClick={loadMoreHistory}
-                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all shadow-lg"
+                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all shadow-lg cursor-pointer"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
