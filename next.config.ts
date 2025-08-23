@@ -2,9 +2,10 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin();
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: 'export', // Enable static export for Netlify
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  output: 'export' as const, // Enable static export for Netlify
   trailingSlash: true, // Add trailing slashes for better static hosting
   distDir: 'out', // Output directory for static export
   eslint: {
