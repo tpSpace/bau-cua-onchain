@@ -3,7 +3,8 @@
 import { useState, useCallback } from 'react';
 import { useSuiClient, useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { GameContract, getGameContract, ContractActivity } from '@/lib/game-contract';
-import { BetData, GameResult, diceToSymbolIds } from '@/lib/contract';
+import { GameResult, diceToSymbolIds } from '@/lib/contract';
+import { type Bet } from '@/types/game';
 
 export interface GameState {
   isPlaying: boolean;
@@ -92,7 +93,7 @@ export function useGameContract() {
   }, [contract]);
 
   // Play the game
-  const playGame = useCallback(async (bets: BetData[]) => {
+  const playGame = useCallback(async (bets: Bet[]) => {
     if (!account || bets.length === 0) {
       throw new Error('No account connected or no bets placed');
     }

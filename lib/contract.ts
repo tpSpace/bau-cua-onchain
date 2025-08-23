@@ -3,6 +3,8 @@
  * Contract Address: 0xd303b0d0165b19f85727d32187a22e76f9f3f31895c7c23ce5f80e01d2c98cac
  */
 
+import { gameSymbols, getContractIndex, contractIndicesToSymbolIds, type Bet } from "@/types/game";
+
 // Contract constants
 export const CONTRACT_CONFIG = {
   PACKAGE_ID: "0xd303b0d0165b19f85727d32187a22e76f9f3f31895c7c23ce5f80e01d2c98cac",
@@ -10,32 +12,6 @@ export const CONTRACT_CONFIG = {
   RANDOM_ID: "0x8", // Global Sui Random object
   MODULE_NAME: "bau_cua",
 } as const;
-
-// Game symbols mapping (0-5 in smart contract)
-export const SYMBOL_MAP = {
-  bau: 0,   // Gourd 🥒
-  cua: 4,   // Crab 🦀  
-  tom: 1,   // Shrimp 🦐
-  ca: 2,    // Fish 🐟
-  ga: 3,    // Rooster 🐓
-  nai: 5,   // Deer 🦌
-} as const;
-
-// Reverse mapping for contract results
-export const SYMBOL_ID_MAP = {
-  0: "bau",
-  1: "tom", 
-  2: "ca",
-  3: "ga",
-  4: "cua",
-  5: "nai",
-} as const;
-
-// Type definitions
-export interface BetData {
-  symbolId: string;
-  amount: number;
-}
 
 export interface ContractBet {
   symbol: number;
@@ -67,7 +43,7 @@ export function mistToSui(mist: string | number): number {
   return Number(mist) / MIST_PER_SUI;
 }
 
-export function prepareBetsForContract(bets: BetData[]): {
+export function prepareBetsForContract(bets: Bet[]): {
   symbols: number[];
   amounts: string[];
   totalAmount: string;
@@ -77,7 +53,7 @@ export function prepareBetsForContract(bets: BetData[]): {
   let totalAmount = 0;
 
   bets.forEach(bet => {
-    const symbolIndex = SYMBOL_MAP[bet.symbolId as keyof typeof SYMBOL_MAP];
+    const symbolIndex = getContractIndex(bet.symbolId);
     const amountInMist = bet.amount * MIST_PER_SUI;
     
     symbols.push(symbolIndex);
@@ -116,5 +92,5 @@ export function parseGameResult(eventData: PlayEventData): GameResult {
 
 // Convert contract dice results to symbol IDs
 export function diceToSymbolIds(dice: number[]): string[] {
-  return dice.map(d => SYMBOL_ID_MAP[d as keyof typeof SYMBOL_ID_MAP]);
+  return contractIndicesToSymbolIds(dice);
 }

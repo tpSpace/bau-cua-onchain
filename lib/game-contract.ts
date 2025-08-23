@@ -3,7 +3,8 @@
 import { SuiClient } from "@mysten/sui/client";
 import { Transaction } from "@mysten/sui/transactions";
 import { WalletAccount } from "@mysten/wallet-standard";
-import { CONTRACT_CONFIG, BetData, prepareBetsForContract, parseGameResult, GameResult, mistToSui, diceToSymbolIds } from "./contract";
+import { CONTRACT_CONFIG, prepareBetsForContract, parseGameResult, GameResult, mistToSui, diceToSymbolIds } from "./contract";
+import { type Bet } from "@/types/game";
 
 export interface ContractActivity {
   digest: string;
@@ -55,7 +56,7 @@ export class GameContract {
    */
   async playGame(
     account: WalletAccount,
-    bets: BetData[],
+    bets: Bet[],
     coinId: string,
     signAndExecute: (input: { transaction: Transaction }) => Promise<any>
   ): Promise<{ result: any; gameResult?: GameResult }> {
@@ -118,7 +119,7 @@ export class GameContract {
    */
   async playGameWithSplit(
     account: WalletAccount,
-    bets: BetData[],
+    bets: Bet[],
     coinId: string,
     signAndExecute: (input: { transaction: Transaction }) => Promise<any>
   ): Promise<{ result: any; gameResult?: GameResult }> {

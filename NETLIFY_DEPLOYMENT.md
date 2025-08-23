@@ -3,12 +3,14 @@
 ## 🚀 Quick Deployment Steps
 
 ### 1. Connect Your Repository
+
 1. Go to [Netlify](https://netlify.com) and sign in
 2. Click "New site from Git"
 3. Connect your GitHub/GitLab/Bitbucket repository
 4. Select this repository (`bau-cua`)
 
 ### 2. Build Settings
+
 Netlify should automatically detect your settings from `netlify.toml`, but verify:
 
 - **Build command**: `curl -fsSL https://bun.sh/install | bash && export PATH="$HOME/.bun/bin:$PATH" && bun install && bun run build`
@@ -17,11 +19,14 @@ Netlify should automatically detect your settings from `netlify.toml`, but verif
 - **Package manager**: Bun (auto-installed during build)
 
 ### 3. Environment Variables (if needed)
+
 Add any required environment variables in Netlify dashboard:
+
 - Go to Site settings → Environment variables
 - Add your environment variables (e.g., API keys, database URLs)
 
 ### 4. Domain Settings
+
 - Your site will get a random Netlify subdomain
 - You can change it in Site settings → Domain management
 - Add custom domain if needed
@@ -64,16 +69,19 @@ bun start
 ## 🐛 Troubleshooting
 
 ### Build Fails
+
 - Check build logs in Netlify dashboard
 - Verify all dependencies are in `package.json`
 - Test `bun run build` locally first
 - Ensure Bun installation succeeded in build logs
 
 ### Routing Issues
+
 - Verify `_redirects` file is in `public/` directory
 - Check locale routing configuration
 
 ### Performance
+
 - Enable Netlify's asset optimization
 - Consider enabling Netlify Functions for API routes
 
