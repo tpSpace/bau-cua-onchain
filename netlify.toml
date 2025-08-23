@@ -1,13 +1,16 @@
 [build]
-  # Build command
-  command = "yarn build"
+  # Build command using Bun
+  command = "curl -fsSL https://bun.sh/install | bash && export PATH=\"$HOME/.bun/bin:$PATH\" && bun install && bun run build"
   
   # Directory to publish (where the static files are located after build)
   publish = ".next"
 
 [build.environment]
-  # Node.js version
+  # Node.js version (Bun requires Node 18+)
   NODE_VERSION = "18"
+  
+  # Use Bun as package manager
+  NPM_FLAGS = "--version" # This forces Netlify to not use npm
   
   # Skip ESLint during build (since we configured it)
   SKIP_LINT = "true"
@@ -61,5 +64,5 @@
 
 # Development settings
 [dev]
-  command = "yarn dev"
+  command = "bun dev"
   port = 3000
