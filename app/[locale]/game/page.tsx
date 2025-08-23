@@ -1,10 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { WalletButton } from "@/components/WalletButton";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useGameContract } from "@/hooks/useGameContract";
 import {
   Home,
   Coins,
@@ -14,6 +15,10 @@ import {
   History,
   Trophy,
   TrendingUp,
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -76,16 +81,81 @@ interface GameResult {
 
 export default function GamePage() {
   const t = useTranslations();
-  const [balance, setBalance] = useState(1000); // Starting balance
+  const {
+    gameState,
+    isConnected,
+    userAddress,
+    totalBalance,
+    playGame,
+    loadUserCoins,
+    loadBankBalance,
+    loadContractHistory,
+    canAffordBet,
+    clearError,
+    lastGameResult,
+  } = useGameContract();
+
   const [bets, setBets] = useState<Bet[]>([]);
-  const [currentBet, setCurrentBet] = useState(10);
-  const [isRolling, setIsRolling] = useState(false);
+  const [currentBet, setCurrentBet] = useState(0.1); // In SUI
   const [diceResults, setDiceResults] = useState<string[]>([]);
   const [gameHistory, setGameHistory] = useState<GameResult[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [showContractHistory, setShowContractHistory] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string>("");
+
+  // Load initial data when wallet connects
+  useEffect(() => {
+    if (isConnected && userAddress) {
+      loadUserCoins();
+      loadBankBalance();
+      loadContractHistory();
+    }
+  }, [
+    isConnected,
+    userAddress,
+    loadUserCoins,
+    loadBankBalance,
+    loadContractHistory,
+  ]);
+
+  // Handle game result
+  useEffect(() => {
+    console.log("useEffect - lastGameResult changed:", lastGameResult);
+
+    if (lastGameResult) {
+      console.log("Processing new game result:", lastGameResult);
+
+      setDiceResults(lastGameResult.dice);
+
+      const newGameResult: GameResult = {
+        dice: lastGameResult.dice,
+        winnings: lastGameResult.winnings,
+        timestamp: new Date(),
+      };
+
+      console.log("Adding to history:", newGameResult);
+      setGameHistory((prev) => {
+        const newHistory = [newGameResult, ...prev.slice(0, 9)];
+        console.log("New history:", newHistory);
+        return newHistory;
+      });
+
+      if (lastGameResult.winnings > 0) {
+        setSuccessMessage(
+          `You won ${lastGameResult.winnings.toFixed(4)} SUI! 🎉`
+        );
+      } else {
+        setSuccessMessage("Better luck next time! 🎲");
+      }
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(""), 5000);
+    }
+  }, [lastGameResult]);
 
   const addBet = (symbolId: string) => {
-    if (balance < currentBet) return;
+    if (!isConnected) return;
+    if (!canAffordBet(getTotalBet() + currentBet)) return;
 
     const existingBet = bets.find((bet) => bet.symbolId === symbolId);
     if (existingBet) {
@@ -99,55 +169,37 @@ export default function GamePage() {
     } else {
       setBets([...bets, { symbolId, amount: currentBet }]);
     }
-    setBalance(balance - currentBet);
   };
 
   const clearBets = () => {
-    const totalBets = bets.reduce((sum, bet) => sum + bet.amount, 0);
-    setBalance(balance + totalBets);
     setBets([]);
+    clearError();
   };
 
-  const rollDice = () => {
-    if (bets.length === 0) return;
+  const rollDice = async () => {
+    if (bets.length === 0 || !isConnected) return;
 
-    setIsRolling(true);
+    try {
+      console.log("Starting game with bets:", bets);
+      clearError();
+      setSuccessMessage("");
 
-    // Simulate dice rolling
-    setTimeout(() => {
-      const results = [
-        gameSymbols[Math.floor(Math.random() * gameSymbols.length)].id,
-        gameSymbols[Math.floor(Math.random() * gameSymbols.length)].id,
-        gameSymbols[Math.floor(Math.random() * gameSymbols.length)].id,
-      ];
+      // Convert bets to the format expected by the contract
+      const contractBets = bets.map((bet) => ({
+        symbolId: bet.symbolId,
+        amount: bet.amount,
+      }));
 
-      setDiceResults(results);
+      console.log("Converted bets for contract:", contractBets);
 
-      // Calculate winnings
-      let totalWinnings = 0;
-      bets.forEach((bet) => {
-        const matches = results.filter(
-          (result) => result === bet.symbolId
-        ).length;
-        if (matches > 0) {
-          const symbol = gameSymbols.find((s) => s.id === bet.symbolId);
-          totalWinnings += bet.amount * symbol!.multiplier * matches;
-        }
-      });
-
-      setBalance(balance + totalWinnings);
-      setGameHistory([
-        {
-          dice: results,
-          winnings: totalWinnings,
-          timestamp: new Date(),
-        },
-        ...gameHistory.slice(0, 9), // Keep last 10 games
-      ]);
+      const result = await playGame(contractBets);
+      console.log("PlayGame returned:", result);
 
       setBets([]);
-      setIsRolling(false);
-    }, 2000);
+    } catch (error: any) {
+      console.error("Game error:", error);
+      // Error is handled by the hook
+    }
   };
 
   const getTotalBet = () => bets.reduce((sum, bet) => sum + bet.amount, 0);
@@ -180,8 +232,13 @@ export default function GamePage() {
           <div className="flex items-center gap-2 text-white">
             <Coins className="w-5 h-5 text-yellow-400" />
             <span className="font-bold text-lg">
-              {balance.toLocaleString()}
+              {isConnected ? `${totalBalance.toFixed(4)} SUI` : "-- SUI"}
             </span>
+            {gameState.bankBalance !== null && (
+              <span className="text-sm text-yellow-200 ml-2">
+                (Bank: {gameState.bankBalance.toFixed(2)} SUI)
+              </span>
+            )}
           </div>
         </div>
 
@@ -203,6 +260,54 @@ export default function GamePage() {
           </h1>
           <p className="text-yellow-100 text-lg">{t("game.subtitle")}</p>
         </motion.div>
+
+        {/* Wallet Connection Notice */}
+        {!isConnected && (
+          <motion.div
+            className="max-w-2xl mx-auto mb-8 p-6 bg-blue-500/20 border border-blue-400/30 rounded-xl text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Wallet className="w-8 h-8 text-blue-400 mx-auto mb-3" />
+            <h3 className="text-xl font-bold text-white mb-2">
+              Connect Your Wallet
+            </h3>
+            <p className="text-blue-100">
+              Connect your Sui wallet to start playing with real SUI on the
+              blockchain!
+            </p>
+          </motion.div>
+        )}
+
+        {/* Error Display */}
+        {gameState.error && (
+          <motion.div
+            className="max-w-2xl mx-auto mb-8 p-4 bg-red-500/20 border border-red-400/30 rounded-xl flex items-center gap-3"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+            <p className="text-red-100">{gameState.error}</p>
+            <button
+              onClick={clearError}
+              className="ml-auto text-red-400 hover:text-red-300"
+            >
+              ×
+            </button>
+          </motion.div>
+        )}
+
+        {/* Success Message */}
+        {successMessage && (
+          <motion.div
+            className="max-w-2xl mx-auto mb-8 p-4 bg-green-500/20 border border-green-400/30 rounded-xl flex items-center gap-3"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+            <p className="text-green-100">{successMessage}</p>
+          </motion.div>
+        )}
 
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Betting Board */}
@@ -231,7 +336,9 @@ export default function GamePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    disabled={balance < currentBet}
+                    disabled={
+                      !isConnected || !canAffordBet(getTotalBet() + currentBet)
+                    }
                   >
                     <div className="text-center">
                       <div className="text-4xl mb-2">{symbol.emoji}</div>
@@ -258,12 +365,13 @@ export default function GamePage() {
               {/* Bet Controls */}
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-white">Bet Amount:</span>
-                  {[10, 25, 50, 100].map((amount) => (
+                  <span className="text-white">Bet Amount (SUI):</span>
+                  {[0.1, 0.25, 0.5, 1.0].map((amount) => (
                     <button
                       key={amount}
                       onClick={() => setCurrentBet(amount)}
-                      className={`px-3 py-1 rounded-lg transition-colors ${
+                      disabled={!isConnected}
+                      className={`px-3 py-1 rounded-lg transition-colors disabled:opacity-50 ${
                         currentBet === amount
                           ? "bg-yellow-400 text-black"
                           : "bg-white/20 text-white hover:bg-white/30"
@@ -289,10 +397,18 @@ export default function GamePage() {
                     onClick={rollDice}
                     className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-bold transition-all disabled:opacity-50"
                     whileHover={{ scale: 1.05 }}
-                    disabled={bets.length === 0 || isRolling}
+                    disabled={
+                      bets.length === 0 || gameState.isPlaying || !isConnected
+                    }
                   >
-                    <Dices className="w-5 h-5" />
-                    {isRolling ? "Rolling..." : `Roll (${getTotalBet()})`}
+                    {gameState.isPlaying ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Dices className="w-5 h-5" />
+                    )}
+                    {gameState.isPlaying
+                      ? "Rolling..."
+                      : `Roll (${getTotalBet().toFixed(2)} SUI)`}
                   </motion.button>
                 </div>
               </div>
@@ -316,11 +432,11 @@ export default function GamePage() {
                   <motion.div
                     key={index}
                     className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center text-3xl"
-                    animate={isRolling ? { rotateY: 360 } : {}}
+                    animate={gameState.isPlaying ? { rotateY: 360 } : {}}
                     transition={{
                       duration: 0.5,
                       delay: index * 0.2,
-                      repeat: isRolling ? Infinity : 0,
+                      repeat: gameState.isPlaying ? Infinity : 0,
                     }}
                   >
                     {diceResults[index]
@@ -331,14 +447,15 @@ export default function GamePage() {
                 ))}
               </div>
 
-              {diceResults.length > 0 && !isRolling && (
+              {diceResults.length > 0 && !gameState.isPlaying && (
                 <motion.div
                   className="text-center"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                 >
                   <div className="text-yellow-300 font-bold">
-                    Last Winnings: {gameHistory[0]?.winnings || 0}
+                    Last Winnings: {gameHistory[0]?.winnings.toFixed(4) || 0}{" "}
+                    SUI
                   </div>
                 </motion.div>
               )}
@@ -352,7 +469,7 @@ export default function GamePage() {
               transition={{ delay: 0.2 }}
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-white">History</h3>
+                <h3 className="text-xl font-bold text-white">Your History</h3>
                 <button
                   onClick={() => setShowHistory(!showHistory)}
                   className="text-yellow-300 hover:text-yellow-200 transition-colors"
@@ -387,7 +504,7 @@ export default function GamePage() {
                           }`}
                         >
                           {game.winnings > 0 ? "+" : ""}
-                          {game.winnings}
+                          {game.winnings.toFixed(4)} SUI
                         </div>
                       </div>
                     </motion.div>
@@ -397,6 +514,140 @@ export default function GamePage() {
                       No games played yet
                     </div>
                   )}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Contract Activity History */}
+            <motion.div
+              className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">
+                  Global Activity
+                </h3>
+                <div className="flex items-center gap-2">
+                  {gameState.isLoadingHistory && (
+                    <Loader2 className="w-4 h-4 text-yellow-300 animate-spin" />
+                  )}
+                  <button
+                    onClick={() => setShowContractHistory(!showContractHistory)}
+                    className="text-yellow-300 hover:text-yellow-200 transition-colors"
+                  >
+                    <TrendingUp className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {showContractHistory && (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {gameState.contractHistory.map((activity, index) => (
+                    <motion.div
+                      key={activity.digest}
+                      className="bg-white/5 rounded-lg p-4 border border-white/10"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.02 }}
+                    >
+                      {/* Transaction Header */}
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Trophy
+                            className={`w-4 h-4 ${
+                              activity.isWin ? "text-green-400" : "text-red-400"
+                            }`}
+                          />
+                          <span className="text-white font-medium">
+                            {activity.isWin ? "WIN" : "LOSS"}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-400">
+                          {activity.timestamp.toLocaleString()}
+                        </span>
+                      </div>
+
+                      {/* Game Results */}
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex gap-1">
+                          {activity.dice.map((die, i) => (
+                            <span key={i} className="text-lg">
+                              {gameSymbols.find((s) => s.id === die)?.emoji}
+                            </span>
+                          ))}
+                        </div>
+                        <div
+                          className={`font-bold ${
+                            activity.isWin ? "text-green-400" : "text-red-400"
+                          }`}
+                        >
+                          {activity.isWin ? "+" : ""}
+                          {activity.winnings.toFixed(4)} SUI
+                        </div>
+                      </div>
+
+                      {/* Transaction Details */}
+                      <div className="text-xs text-gray-300 space-y-1">
+                        <div className="flex justify-between">
+                          <span>Bet:</span>
+                          <span>{activity.totalBet.toFixed(4)} SUI</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Gas:</span>
+                          <span>{activity.gasUsed.toFixed(6)} SUI</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Player:</span>
+                          <span className="font-mono">
+                            {activity.player.slice(0, 6)}...
+                            {activity.player.slice(-4)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>TX:</span>
+                          <a
+                            href={`https://suiscan.xyz/testnet/tx/${activity.digest}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-400 hover:text-blue-300 font-mono underline"
+                          >
+                            {activity.digest.slice(0, 8)}...
+                          </a>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {gameState.contractHistory.length === 0 &&
+                    !gameState.isLoadingHistory && (
+                      <div className="text-white/60 text-center py-4">
+                        No contract activity found
+                      </div>
+                    )}
+
+                  {gameState.isLoadingHistory && (
+                    <div className="text-white/60 text-center py-4 flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Loading activity...
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Refresh Button */}
+              {showContractHistory && (
+                <div className="mt-4 pt-3 border-t border-white/10">
+                  <button
+                    onClick={() => loadContractHistory()}
+                    disabled={gameState.isLoadingHistory}
+                    className="w-full px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 rounded-lg transition-colors disabled:opacity-50 text-sm"
+                  >
+                    {gameState.isLoadingHistory
+                      ? "Loading..."
+                      : "Refresh Activity"}
+                  </button>
                 </div>
               )}
             </motion.div>
