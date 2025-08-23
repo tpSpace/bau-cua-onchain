@@ -8,8 +8,7 @@ import { GameHeader } from "@/components/game/GameHeader";
 import { MessageDisplay } from "@/components/game/MessageDisplay";
 import { BettingBoard } from "@/components/game/BettingBoard";
 import { DiceResults } from "@/components/game/DiceResults";
-import { RandomnessDetails } from "@/components/game/RandomnessDetails";
-import { GameAnalysis } from "@/components/game/GameAnalysis";
+
 import { GameHistory } from "@/components/game/GameHistory";
 import { gameSymbols } from "@/types/game";
 import type {
@@ -222,11 +221,8 @@ export default function GamePage() {
             <DiceResults
               isPlaying={gameState.isPlaying}
               lastGameResult={lastGameResult}
+              randomnessDetails={randomnessDetails}
             />
-
-            <RandomnessDetails randomnessDetails={randomnessDetails} />
-
-            <GameAnalysis lastGameResult={lastGameResult} />
 
             <GameHistory
               gameState={{
