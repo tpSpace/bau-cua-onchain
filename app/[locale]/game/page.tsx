@@ -14,7 +14,6 @@ import { GameHistory } from "@/components/game/GameHistory";
 import { gameSymbols } from "@/types/game";
 import type {
   Bet,
-  GameResult,
   RandomnessDetails as RandomnessDetailsType,
 } from "@/types/game";
 
@@ -31,15 +30,17 @@ export default function GamePage() {
     loadContractHistory,
     canAffordBet,
     clearError,
-    lastGameResult,
   } = useGameContract();
+
+  // Get last game result from contract history (most recent)
+  const lastGameResult = gameState.contractHistory?.[0] || null;
 
   const [bets, setBets] = useState<Bet[]>([]);
   const [currentBet, setCurrentBet] = useState(0.1); // In SUI
-  const [diceResults, setDiceResults] = useState<string[]>([]);
+
   const [randomnessDetails, setRandomnessDetails] =
     useState<RandomnessDetailsType>({});
-  const [gameHistory, setGameHistory] = useState<GameResult[]>([]);
+
   const [successMessage, setSuccessMessage] = useState<string>("");
 
   // Load initial data when wallet connects
@@ -47,7 +48,7 @@ export default function GamePage() {
     if (isConnected && userAddress) {
       loadUserCoins();
       loadBankBalance();
-      loadContractHistory();
+      loadContractHistory(100);
     }
   }, [
     isConnected,
@@ -57,54 +58,49 @@ export default function GamePage() {
     loadContractHistory,
   ]);
 
-  // Handle game result
+  // Handle game result from contract history
   useEffect(() => {
     if (lastGameResult) {
-      setDiceResults(lastGameResult.dice);
-
-      const newGameResult: GameResult = {
-        dice: lastGameResult.dice,
-        winnings: lastGameResult.winnings,
-        timestamp: new Date(),
-      };
-
-      setGameHistory((prev) => [newGameResult, ...prev.slice(0, 9)]);
-
       // Extract detailed randomness information
-      if (lastGameResult && (lastGameResult as any).rawDice) {
-        const rawNumbers = (lastGameResult as any).rawDice;
-        const symbols = lastGameResult.dice;
-        const emojis = symbols.map(
-          (symbol) => gameSymbols.find((s) => s.id === symbol)?.emoji || "🎲"
-        );
+      const symbols = lastGameResult.dice;
+      const emojis = symbols.map(
+        (symbol) => gameSymbols.find((s) => s.id === symbol)?.emoji || "🎲"
+      );
 
-        setRandomnessDetails({
-          transactionDigest: undefined, // Will be set from the transaction result
-          timestamp: new Date(),
-          rawNumbers,
-          convertedSymbols: symbols,
-          emojis,
-        });
+      setRandomnessDetails({
+        transactionDigest: lastGameResult.digest,
+        timestamp: lastGameResult.timestamp,
+        rawNumbers: lastGameResult.dice, // Using dice as raw numbers
+        convertedSymbols: symbols,
+        emojis,
+      });
 
-        // Log dice result for debugging
-        console.log("🎯 DICE RESULT:", {
-          rawNumbers,
-          symbols,
-          emojis,
-          winnings: lastGameResult.winnings,
-        });
+      // Log dice result for debugging
+      console.log("🎯 DICE RESULT from contract history:", {
+        symbols,
+        emojis,
+        winnings: lastGameResult.winnings,
+        digest: lastGameResult.digest,
+      });
+
+      // Show success message for recent games (within last 30 seconds)
+      const isRecentGame =
+        lastGameResult.timestamp &&
+        Date.now() - new Date(lastGameResult.timestamp).getTime() < 30000;
+
+      if (isRecentGame) {
+        const profit = lastGameResult.winnings - lastGameResult.totalBet;
+        if (profit > 0) {
+          setSuccessMessage(`You won ${profit.toFixed(4)} SUI! 🎉`);
+        } else if (profit === 0) {
+          setSuccessMessage("Break even! ⚖️");
+        } else {
+          setSuccessMessage("Better luck next time! 🎲");
+        }
+
+        // Clear success message after 5 seconds
+        setTimeout(() => setSuccessMessage(""), 5000);
       }
-
-      if (lastGameResult.winnings > 0) {
-        setSuccessMessage(
-          `You won ${lastGameResult.winnings.toFixed(4)} SUI! 🎉`
-        );
-      } else {
-        setSuccessMessage("Better luck next time! 🎲");
-      }
-
-      // Clear success message after 5 seconds
-      setTimeout(() => setSuccessMessage(""), 5000);
     }
   }, [lastGameResult]);
 
@@ -153,6 +149,9 @@ export default function GamePage() {
           transactionDigest: result.transactionDigest,
         }));
       }
+
+      // Refresh contract history to get the latest game result
+      await loadContractHistory(100);
 
       setBets([]);
     } catch (error: any) {
@@ -221,9 +220,8 @@ export default function GamePage() {
           {/* Game Results & History */}
           <div className="space-y-6">
             <DiceResults
-              diceResults={diceResults}
               isPlaying={gameState.isPlaying}
-              gameHistory={gameHistory}
+              lastGameResult={lastGameResult}
             />
 
             <RandomnessDetails randomnessDetails={randomnessDetails} />
@@ -231,12 +229,11 @@ export default function GamePage() {
             <GameAnalysis lastGameResult={lastGameResult} />
 
             <GameHistory
-              gameHistory={gameHistory}
               gameState={{
                 contractHistory: gameState.contractHistory,
                 isLoadingHistory: gameState.isLoadingHistory,
               }}
-              onLoadContractHistory={loadContractHistory}
+              onLoadContractHistory={(limit) => loadContractHistory(limit)}
             />
           </div>
         </div>

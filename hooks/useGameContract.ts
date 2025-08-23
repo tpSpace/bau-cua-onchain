@@ -72,7 +72,7 @@ export function useGameContract() {
   }, [contract]);
 
   // Load contract activity history
-  const loadContractHistory = useCallback(async (limit: number = 20) => {
+  const loadContractHistory = useCallback(async (limit: number = 100) => {
     setGameState(prev => ({ ...prev, isLoadingHistory: true, error: null }));
     
     try {

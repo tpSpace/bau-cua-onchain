@@ -8,11 +8,12 @@ interface GameAnalysisProps {
 }
 
 export function GameAnalysis({ lastGameResult }: GameAnalysisProps) {
-  if (!lastGameResult || !(lastGameResult as any).rawDice) {
+  if (!lastGameResult || !lastGameResult.dice) {
     return null;
   }
 
-  const rawNumbers = lastGameResult.rawDice;
+  // Contract history format: dice contains the raw numbers
+  const rawNumbers = lastGameResult.dice;
   const symbolIds = lastGameResult.dice;
   const winnings = lastGameResult.winnings;
 
@@ -154,7 +155,7 @@ export function GameAnalysis({ lastGameResult }: GameAnalysisProps) {
               <div className="mb-2 text-yellow-300">
                 // Access dice results directly:
               </div>
-              <div>const rawNumbers = lastGameResult.rawDice;</div>
+              <div>const rawNumbers = lastGameResult.dice;</div>
               <div>const symbolIds = lastGameResult.dice;</div>
               <div>const winnings = lastGameResult.winnings;</div>
               <div className="mt-2 text-yellow-300">// Raw data:</div>

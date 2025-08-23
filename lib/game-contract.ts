@@ -230,7 +230,7 @@ export class GameContract {
   /**
    * Get contract activity history - all play transactions
    */
-  async getContractHistory(limit: number = 20): Promise<ContractActivity[]> {
+  async getContractHistory(limit: number = 100): Promise<ContractActivity[]> {
     try {
       console.log('Fetching contract history for package:', CONTRACT_CONFIG.PACKAGE_ID);
       

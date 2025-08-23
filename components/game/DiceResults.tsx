@@ -2,19 +2,19 @@
 
 import { motion } from "framer-motion";
 import { gameSymbols } from "@/types/game";
-import type { GameResult } from "@/types/game";
 
 interface DiceResultsProps {
-  diceResults: string[];
   isPlaying: boolean;
-  gameHistory: GameResult[];
+  lastGameResult: any; // Real contract result with dice data
 }
 
-export function DiceResults({
-  diceResults,
-  isPlaying,
-  gameHistory,
-}: DiceResultsProps) {
+export function DiceResults({ isPlaying, lastGameResult }: DiceResultsProps) {
+  // Use real on-chain dice data from contract history
+  const diceResults = lastGameResult?.dice || [];
+  console.log(
+    "DiceResults - lastGameResult from contract history:",
+    lastGameResult
+  );
   return (
     <motion.div
       className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
@@ -44,17 +44,19 @@ export function DiceResults({
         ))}
       </div>
 
-      {diceResults.length > 0 && !isPlaying && (
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <div className="text-yellow-300 font-bold">
-            Last Winnings: {gameHistory[0]?.winnings.toFixed(4) || 0} SUI
-          </div>
-        </motion.div>
-      )}
+      {diceResults.length > 0 &&
+        !isPlaying &&
+        lastGameResult?.winnings !== undefined && (
+          <motion.div
+            className="text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <div className="text-yellow-300 font-bold">
+              Last Winnings: {lastGameResult.winnings.toFixed(4)} SUI
+            </div>
+          </motion.div>
+        )}
     </motion.div>
   );
 }

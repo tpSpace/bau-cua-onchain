@@ -120,3 +120,74 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom scrollbar for game history - make it pop! */
+.game-history-scroll::-webkit-scrollbar {
+  width: 12px;
+}
+
+.game-history-scroll::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 8px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  box-shadow: inset 0 0 6px rgba(255, 215, 0, 0.2);
+}
+
+.game-history-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, 
+    #ffd700 0%,     /* Gold */
+    #ffed4e 25%,    /* Light gold */
+    #f59e0b 50%,    /* Amber */
+    #ff6b35 75%,    /* Orange-red */
+    #dc2626 100%    /* Red */
+  );
+  border-radius: 8px;
+  box-shadow: 
+    0 0 15px rgba(255, 215, 0, 0.8),
+    0 0 25px rgba(255, 107, 53, 0.6),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.game-history-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, 
+    #fff700 0%,     /* Brighter gold */
+    #ffed4e 25%,    
+    #f59e0b 50%,    
+    #ff4500 75%,    /* Orange-red */
+    #b91c1c 100%    /* Darker red */
+  );
+  box-shadow: 
+    0 0 25px rgba(255, 215, 0, 1),
+    0 0 35px rgba(255, 107, 53, 0.8),
+    inset 0 2px 4px rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.game-history-scroll::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(135deg, 
+    #ffd700 0%,     
+    #ff8c00 50%,    
+    #dc2626 100%    
+  );
+  box-shadow: 
+    0 0 30px rgba(255, 215, 0, 1),
+    0 0 40px rgba(255, 140, 0, 0.9),
+    inset 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 
+      0 0 15px rgba(255, 215, 0, 0.8),
+      0 0 25px rgba(255, 107, 53, 0.6),
+      inset 0 2px 4px rgba(255, 255, 255, 0.3);
+  }
+  to {
+    box-shadow: 
+      0 0 20px rgba(255, 215, 0, 1),
+      0 0 30px rgba(255, 107, 53, 0.8),
+      inset 0 2px 4px rgba(255, 255, 255, 0.4);
+  }
+}
