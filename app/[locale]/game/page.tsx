@@ -69,7 +69,7 @@ export default function GamePage() {
       setRandomnessDetails({
         transactionDigest: lastGameResult.digest,
         timestamp: lastGameResult.timestamp,
-        rawNumbers: lastGameResult.dice, // Using dice as raw numbers
+        rawNumbers: [], // No raw numbers available from contract history
         convertedSymbols: symbols,
         emojis,
       });

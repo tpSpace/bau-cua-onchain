@@ -39,16 +39,35 @@ export function DiceResults({
           <motion.div
             key={index}
             className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center text-3xl"
-            animate={isPlaying ? { rotateY: 360 } : {}}
+            animate={
+              isPlaying
+                ? {
+                    rotateY: 360,
+                    scale: [1, 1.1, 1],
+                  }
+                : {}
+            }
             transition={{
-              duration: 0.5,
-              delay: index * 0.2,
+              duration: 0.6,
+              delay: index * 0.1,
               repeat: isPlaying ? Infinity : 0,
+              ease: "easeInOut",
             }}
           >
-            {diceResults[index]
-              ? gameSymbols.find((s) => s.id === diceResults[index])?.emoji
-              : "🎲"}
+            <motion.div
+              animate={isPlaying ? { rotate: 360 } : {}}
+              transition={{
+                duration: 0.8,
+                repeat: isPlaying ? Infinity : 0,
+                ease: "linear",
+              }}
+            >
+              {isPlaying
+                ? "🎲"
+                : diceResults[index]
+                ? gameSymbols.find((s) => s.id === diceResults[index])?.emoji
+                : "🎲"}
+            </motion.div>
           </motion.div>
         ))}
       </div>
@@ -61,10 +80,6 @@ export function DiceResults({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <div className="text-yellow-300 font-bold">
-              Last Winnings: {lastGameResult.winnings.toFixed(4)} SUI
-            </div>
-
             {/* Randomness Details Button */}
             <motion.button
               onClick={() => setShowRandomnessDetails(!showRandomnessDetails)}
