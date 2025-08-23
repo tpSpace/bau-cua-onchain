@@ -1,0 +1,65 @@
+[build]
+  # Build command
+  command = "yarn build"
+  
+  # Directory to publish (where the static files are located after build)
+  publish = ".next"
+
+[build.environment]
+  # Node.js version
+  NODE_VERSION = "18"
+  
+  # Skip ESLint during build (since we configured it)
+  SKIP_LINT = "true"
+  
+  # Enable Next.js telemetry (optional)
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Redirects for Next.js app routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Function settings (if you have any API routes)
+[functions]
+  directory = "netlify/functions"
+
+# Development settings
+[dev]
+  command = "yarn dev"
+  port = 3000

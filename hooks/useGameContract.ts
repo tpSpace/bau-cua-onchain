@@ -198,6 +198,7 @@ export function useGameContract() {
       dice: diceToSymbolIds(gameState.lastGameResult.dice),
       winnings: parseFloat(gameState.lastGameResult.winnings) / 1_000_000_000,
       totalBet: parseFloat(gameState.lastGameResult.totalBet) / 1_000_000_000,
+      rawDice: gameState.lastGameResult.dice, // Include raw numbers
     };
     
     console.log('getLastGameUIResult - converted result:', result);

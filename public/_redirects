@@ -1,0 +1,9 @@
+# Redirect rules for Next.js app with internationalization
+/*    /index.html   200
+
+# Handle locale-specific routes
+/en/*  /en/index.html  200
+/vi/*  /vi/index.html  200
+
+# API routes (if any)
+/api/*  /.netlify/functions/:splat  200

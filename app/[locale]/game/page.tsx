@@ -7,6 +7,12 @@ import { WalletButton } from "@/components/WalletButton";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useGameContract } from "@/hooks/useGameContract";
 import {
+  createDiceResult,
+  formatDiceDisplay,
+  analyzeDiceResult,
+  DiceResultExamples,
+} from "@/lib/dice-results";
+import {
   Home,
   Coins,
   Dices,
@@ -19,6 +25,11 @@ import {
   CheckCircle,
   Loader2,
   Wallet,
+  Shuffle,
+  Info,
+  ExternalLink,
+  Hash,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -98,9 +109,18 @@ export default function GamePage() {
   const [bets, setBets] = useState<Bet[]>([]);
   const [currentBet, setCurrentBet] = useState(0.1); // In SUI
   const [diceResults, setDiceResults] = useState<string[]>([]);
+  const [rawDiceNumbers, setRawDiceNumbers] = useState<number[]>([]);
+  const [randomnessDetails, setRandomnessDetails] = useState<{
+    transactionDigest?: string;
+    timestamp?: Date;
+    rawNumbers?: number[];
+    convertedSymbols?: string[];
+    emojis?: string[];
+  }>({});
   const [gameHistory, setGameHistory] = useState<GameResult[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [showContractHistory, setShowContractHistory] = useState(false);
+
+  const [showRandomDetails, setShowRandomDetails] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
 
   // Load initial data when wallet connects
@@ -140,6 +160,45 @@ export default function GamePage() {
         return newHistory;
       });
 
+      // Extract detailed randomness information
+      if (lastGameResult && (lastGameResult as any).rawDice) {
+        const rawNumbers = (lastGameResult as any).rawDice;
+        const symbols = lastGameResult.dice;
+        const emojis = symbols.map(
+          (symbol) => gameSymbols.find((s) => s.id === symbol)?.emoji || "🎲"
+        );
+
+        setRawDiceNumbers(rawNumbers);
+        setRandomnessDetails({
+          transactionDigest: undefined, // Will be set from the transaction result
+          timestamp: new Date(),
+          rawNumbers,
+          convertedSymbols: symbols,
+          emojis,
+        });
+
+        console.log("🎲 RANDOMNESS DETAILS:");
+        console.log("Raw numbers from contract:", rawNumbers);
+        console.log("Converted to symbols:", symbols);
+        console.log("Display emojis:", emojis);
+
+        // Example: Access dice results using utility functions
+        const diceResult = DiceResultExamples.getCurrentDice(lastGameResult);
+        if (diceResult) {
+          console.log("🎯 DICE RESULT OBJECT:", diceResult);
+          console.log("📊 FORMATTED DISPLAY:", formatDiceDisplay(diceResult));
+          console.log("🔍 MATCH ANALYSIS:", analyzeDiceResult(diceResult));
+
+          // Example: Different display formats
+          const displays = DiceResultExamples.displayFormats(diceResult);
+          console.log("🎨 DISPLAY OPTIONS:");
+          console.log("  Simple emojis:", displays.simple);
+          console.log("  With numbers:", displays.withNumbers);
+          console.log("  English names:", displays.description);
+          console.log("  Vietnamese names:", displays.vietnamese);
+        }
+      }
+
       if (lastGameResult.winnings > 0) {
         setSuccessMessage(
           `You won ${lastGameResult.winnings.toFixed(4)} SUI! 🎉`
@@ -151,7 +210,7 @@ export default function GamePage() {
       // Clear success message after 5 seconds
       setTimeout(() => setSuccessMessage(""), 5000);
     }
-  }, [lastGameResult]);
+  }, [lastGameResult, gameState.lastGameResult]);
 
   const addBet = (symbolId: string) => {
     if (!isConnected) return;
@@ -194,6 +253,14 @@ export default function GamePage() {
 
       const result = await playGame(contractBets);
       console.log("PlayGame returned:", result);
+
+      // Update randomness details with transaction digest
+      if (result.transactionDigest) {
+        setRandomnessDetails((prev) => ({
+          ...prev,
+          transactionDigest: result.transactionDigest,
+        }));
+      }
 
       setBets([]);
     } catch (error: any) {
@@ -461,7 +528,323 @@ export default function GamePage() {
               )}
             </motion.div>
 
-            {/* Game History */}
+            {/* Randomness Details */}
+            {randomnessDetails.rawNumbers &&
+              randomnessDetails.rawNumbers.length > 0 && (
+                <motion.div
+                  className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-white">
+                      Randomness Details
+                    </h3>
+                    <button
+                      onClick={() => setShowRandomDetails(!showRandomDetails)}
+                      className="text-yellow-300 hover:text-yellow-200 transition-colors"
+                    >
+                      <Shuffle className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Compact View */}
+                  {!showRandomDetails && (
+                    <div className="text-center">
+                      <div className="flex justify-center gap-2 mb-2">
+                        {randomnessDetails.rawNumbers?.map((num, i) => (
+                          <div key={i} className="text-center">
+                            <div className="bg-blue-500/20 rounded-lg px-3 py-2 text-blue-200 font-mono text-sm">
+                              {num}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">→</div>
+                            <div className="text-2xl">
+                              {randomnessDetails.emojis?.[i]}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-400">
+                        Click shuffle icon for details
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Detailed View */}
+                  {showRandomDetails && (
+                    <div className="space-y-4">
+                      {/* Contract Random Numbers */}
+                      <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/20">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Hash className="w-4 h-4 text-blue-400" />
+                          <h4 className="font-semibold text-blue-200">
+                            Smart Contract Random Generation
+                          </h4>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-300">Source:</span>
+                            <span className="text-blue-200 font-mono text-sm">
+                              Sui VRF (Verifiable Random Function)
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-300">Range:</span>
+                            <span className="text-blue-200">
+                              0-5 (inclusive)
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-300">Generated:</span>
+                            <span className="text-blue-200 font-mono">
+                              [{randomnessDetails.rawNumbers?.join(", ")}]
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Conversion Process */}
+                      <div className="bg-green-500/10 rounded-lg p-4 border border-green-500/20">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Shuffle className="w-4 h-4 text-green-400" />
+                          <h4 className="font-semibold text-green-200">
+                            Number to Symbol Conversion
+                          </h4>
+                        </div>
+                        <div className="space-y-2">
+                          {randomnessDetails.rawNumbers?.map((num, i) => {
+                            const symbolMap = {
+                              0: { name: "Bau (Gourd)", emoji: "🥒" },
+                              1: { name: "Tom (Shrimp)", emoji: "🦐" },
+                              2: { name: "Ca (Fish)", emoji: "🐟" },
+                              3: { name: "Ga (Rooster)", emoji: "🐓" },
+                              4: { name: "Cua (Crab)", emoji: "🦀" },
+                              5: { name: "Nai (Deer)", emoji: "🦌" },
+                            };
+                            const symbol =
+                              symbolMap[num as keyof typeof symbolMap];
+                            return (
+                              <div
+                                key={i}
+                                className="flex items-center justify-between bg-white/5 rounded px-3 py-2"
+                              >
+                                <span className="font-mono text-green-200">
+                                  {num}
+                                </span>
+                                <span className="text-gray-400">→</span>
+                                <span className="text-green-200">
+                                  {symbol?.name}
+                                </span>
+                                <span className="text-2xl">
+                                  {symbol?.emoji}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Transaction Info */}
+                      {randomnessDetails.transactionDigest && (
+                        <div className="bg-purple-500/10 rounded-lg p-4 border border-purple-500/20">
+                          <div className="flex items-center gap-2 mb-3">
+                            <ExternalLink className="w-4 h-4 text-purple-400" />
+                            <h4 className="font-semibold text-purple-200">
+                              Blockchain Verification
+                            </h4>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-300">TX Digest:</span>
+                              <a
+                                href={`https://suiscan.xyz/testnet/tx/${randomnessDetails.transactionDigest}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-purple-300 hover:text-purple-200 font-mono text-sm underline"
+                              >
+                                {randomnessDetails.transactionDigest?.slice(
+                                  0,
+                                  8
+                                )}
+                                ...
+                              </a>
+                            </div>
+                            {randomnessDetails.timestamp && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-gray-300">Time:</span>
+                                <span className="text-purple-200 text-sm">
+                                  {randomnessDetails.timestamp.toLocaleString()}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Security Info */}
+                      <div className="bg-yellow-500/10 rounded-lg p-4 border border-yellow-500/20">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Info className="w-4 h-4 text-yellow-400" />
+                          <h4 className="font-semibold text-yellow-200">
+                            Security Features
+                          </h4>
+                        </div>
+                        <ul className="space-y-1 text-sm text-yellow-100">
+                          <li>✅ Cryptographically secure randomness</li>
+                          <li>✅ Domain-separated per transaction</li>
+                          <li>✅ Verifiable on blockchain</li>
+                          <li>✅ Cannot be predicted or manipulated</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+            {/* Current Dice Result Analysis */}
+            {lastGameResult && (lastGameResult as any).rawDice && (
+              <motion.div
+                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <h3 className="text-xl font-bold text-white mb-4 text-center">
+                  Dice Result Analysis
+                </h3>
+
+                {(() => {
+                  // Get current dice result using our utility
+                  const currentDice =
+                    DiceResultExamples.getCurrentDice(lastGameResult);
+                  if (!currentDice) return null;
+
+                  const displays =
+                    DiceResultExamples.displayFormats(currentDice);
+                  const analysis = analyzeDiceResult(currentDice);
+                  const format = formatDiceDisplay(currentDice);
+
+                  return (
+                    <div className="space-y-4">
+                      {/* Visual Display Options */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/20">
+                          <h4 className="font-semibold text-blue-200 mb-2">
+                            Display Formats
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Simple:</span>
+                              <span className="text-2xl">
+                                {displays.simple}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">
+                                With Numbers:
+                              </span>
+                              <span className="font-mono text-blue-200">
+                                {displays.withNumbers}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">English:</span>
+                              <span className="text-blue-200">
+                                {displays.description}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Vietnamese:</span>
+                              <span className="text-blue-200">
+                                {displays.vietnamese}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-green-500/10 rounded-lg p-4 border border-green-500/20">
+                          <h4 className="font-semibold text-green-200 mb-2">
+                            Match Analysis
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            {analysis.matches.length > 0 ? (
+                              <>
+                                {analysis.isTriple && (
+                                  <div className="text-yellow-300 font-bold">
+                                    🎉 TRIPLE MATCH!
+                                  </div>
+                                )}
+                                {analysis.isPair && !analysis.isTriple && (
+                                  <div className="text-green-300 font-bold">
+                                    ✅ PAIR MATCH!
+                                  </div>
+                                )}
+                                {analysis.matches.map((match, i) => (
+                                  <div key={i} className="flex justify-between">
+                                    <span className="text-gray-300">
+                                      {match.count}x {match.emoji}
+                                    </span>
+                                    <span className="text-green-200">
+                                      {match.symbol}
+                                    </span>
+                                  </div>
+                                ))}
+                              </>
+                            ) : (
+                              <div className="text-gray-400">No matches</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Result Summary */}
+                      <div className="bg-purple-500/10 rounded-lg p-4 border border-purple-500/20 text-center">
+                        <div className="text-lg font-bold text-purple-200 mb-2">
+                          {format.compact}
+                        </div>
+                        <div className="text-sm text-purple-300 mb-2">
+                          {format.detailed}
+                        </div>
+                        <div
+                          className={`font-bold ${
+                            currentDice.winnings > 0
+                              ? "text-green-300"
+                              : "text-red-300"
+                          }`}
+                        >
+                          {format.winLoss}
+                        </div>
+                      </div>
+
+                      {/* Raw Data Access (for developers) */}
+                      <details className="bg-gray-500/10 rounded-lg border border-gray-500/20">
+                        <summary className="p-3 cursor-pointer text-gray-300 font-semibold">
+                          🔧 Developer Data Access
+                        </summary>
+                        <div className="p-4 pt-0">
+                          <div className="bg-black/20 rounded p-3 font-mono text-xs text-gray-300 overflow-auto">
+                            <div className="mb-2 text-yellow-300">
+                              // Access dice results in your code:
+                            </div>
+                            <div>
+                              const currentDice =
+                              DiceResultExamples.getCurrentDice(lastGameResult);
+                            </div>
+                            <div className="mt-2 text-yellow-300">
+                              // Result object:
+                            </div>
+                            <pre>{JSON.stringify(currentDice, null, 2)}</pre>
+                          </div>
+                        </div>
+                      </details>
+                    </div>
+                  );
+                })()}
+              </motion.div>
+            )}
+
+            {/* Enhanced Game History with Contract Data */}
             <motion.div
               className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
               initial={{ opacity: 0, x: 20 }}
@@ -469,81 +852,31 @@ export default function GamePage() {
               transition={{ delay: 0.2 }}
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-white">Your History</h3>
-                <button
-                  onClick={() => setShowHistory(!showHistory)}
-                  className="text-yellow-300 hover:text-yellow-200 transition-colors"
-                >
-                  <History className="w-5 h-5" />
-                </button>
-              </div>
-
-              {showHistory && (
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {gameHistory.map((game, index) => (
-                    <motion.div
-                      key={index}
-                      className="bg-white/5 rounded-lg p-3"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="flex gap-1">
-                          {game.dice.map((die, i) => (
-                            <span key={i} className="text-lg">
-                              {gameSymbols.find((s) => s.id === die)?.emoji}
-                            </span>
-                          ))}
-                        </div>
-                        <div
-                          className={`font-bold ${
-                            game.winnings > 0
-                              ? "text-green-400"
-                              : "text-red-400"
-                          }`}
-                        >
-                          {game.winnings > 0 ? "+" : ""}
-                          {game.winnings.toFixed(4)} SUI
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                  {gameHistory.length === 0 && (
-                    <div className="text-white/60 text-center py-4">
-                      No games played yet
-                    </div>
-                  )}
-                </div>
-              )}
-            </motion.div>
-
-            {/* Contract Activity History */}
-            <motion.div
-              className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-white">
-                  Global Activity
-                </h3>
+                <h3 className="text-xl font-bold text-white">Game History</h3>
                 <div className="flex items-center gap-2">
                   {gameState.isLoadingHistory && (
                     <Loader2 className="w-4 h-4 text-yellow-300 animate-spin" />
                   )}
                   <button
-                    onClick={() => setShowContractHistory(!showContractHistory)}
+                    onClick={() => loadContractHistory()}
+                    disabled={gameState.isLoadingHistory}
+                    className="text-blue-300 hover:text-blue-200 transition-colors disabled:opacity-50"
+                    title="Refresh from blockchain"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setShowHistory(!showHistory)}
                     className="text-yellow-300 hover:text-yellow-200 transition-colors"
                   >
-                    <TrendingUp className="w-5 h-5" />
+                    <History className="w-5 h-5" />
                   </button>
                 </div>
               </div>
 
-              {showContractHistory && (
+              {showHistory && (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {/* Contract History (blockchain data) */}
                   {gameState.contractHistory.map((activity, index) => (
                     <motion.div
                       key={activity.digest}
@@ -552,8 +885,8 @@ export default function GamePage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.02 }}
                     >
-                      {/* Transaction Header */}
-                      <div className="flex items-center justify-between mb-2">
+                      {/* Game Result Header */}
+                      <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <Trophy
                             className={`w-4 h-4 ${
@@ -561,93 +894,224 @@ export default function GamePage() {
                             }`}
                           />
                           <span className="text-white font-medium">
-                            {activity.isWin ? "WIN" : "LOSS"}
+                            {activity.isWin ? "🎉 WIN" : "😔 LOSS"}
                           </span>
                         </div>
-                        <span className="text-xs text-gray-400">
-                          {activity.timestamp.toLocaleString()}
-                        </span>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">
+                            {activity.timestamp.toLocaleDateString()}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {activity.timestamp.toLocaleTimeString()}
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Game Results */}
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex gap-1">
+                      {/* Dice Results */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex gap-2">
                           {activity.dice.map((die, i) => (
-                            <span key={i} className="text-lg">
-                              {gameSymbols.find((s) => s.id === die)?.emoji}
-                            </span>
+                            <div key={i} className="text-center">
+                              <div className="text-2xl">
+                                {gameSymbols.find((s) => s.id === die)?.emoji ||
+                                  "🎲"}
+                              </div>
+                              <div className="text-xs text-gray-400 capitalize">
+                                {die}
+                              </div>
+                            </div>
                           ))}
                         </div>
-                        <div
-                          className={`font-bold ${
-                            activity.isWin ? "text-green-400" : "text-red-400"
-                          }`}
-                        >
-                          {activity.isWin ? "+" : ""}
-                          {activity.winnings.toFixed(4)} SUI
+                        <div className="text-right">
+                          <div
+                            className={`font-bold text-lg ${
+                              activity.isWin ? "text-green-400" : "text-red-400"
+                            }`}
+                          >
+                            {activity.isWin ? "+" : ""}
+                            {activity.winnings.toFixed(4)} SUI
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Bet: {activity.totalBet.toFixed(4)} SUI
+                          </div>
                         </div>
                       </div>
 
                       {/* Transaction Details */}
-                      <div className="text-xs text-gray-300 space-y-1">
-                        <div className="flex justify-between">
-                          <span>Bet:</span>
-                          <span>{activity.totalBet.toFixed(4)} SUI</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Player:</span>
+                            <span className="text-gray-300 font-mono">
+                              {activity.player.slice(0, 6)}...
+                              {activity.player.slice(-4)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Gas Used:</span>
+                            <span className="text-gray-300">
+                              {activity.gasUsed.toFixed(6)} SUI
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Gas:</span>
-                          <span>{activity.gasUsed.toFixed(6)} SUI</span>
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Profit/Loss:</span>
+                            <span
+                              className={`${
+                                activity.winnings - activity.totalBet > 0
+                                  ? "text-green-300"
+                                  : "text-red-300"
+                              }`}
+                            >
+                              {activity.winnings - activity.totalBet > 0
+                                ? "+"
+                                : ""}
+                              {(activity.winnings - activity.totalBet).toFixed(
+                                4
+                              )}{" "}
+                              SUI
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">TX:</span>
+                            <a
+                              href={`https://suiscan.xyz/testnet/tx/${activity.digest}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 underline font-mono"
+                            >
+                              {activity.digest.slice(0, 8)}...
+                            </a>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Player:</span>
-                          <span className="font-mono">
-                            {activity.player.slice(0, 6)}...
-                            {activity.player.slice(-4)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>TX:</span>
-                          <a
-                            href={`https://suiscan.xyz/testnet/tx/${activity.digest}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:text-blue-300 font-mono underline"
-                          >
-                            {activity.digest.slice(0, 8)}...
-                          </a>
+                      </div>
+
+                      {/* Event Data Badge */}
+                      <div className="mt-3 pt-2 border-t border-white/10">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-xs">
+                            <CheckCircle className="w-3 h-3 text-green-400" />
+                            <span className="text-green-300">
+                              Smart Contract Event
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Verified on blockchain
+                          </div>
                         </div>
                       </div>
                     </motion.div>
                   ))}
 
+                  {/* Local Game History (if any newer than blockchain) */}
+                  {gameHistory
+                    .filter(
+                      (game) =>
+                        !gameState.contractHistory.some(
+                          (activity) =>
+                            activity.dice.join("") === game.dice.join("")
+                        )
+                    )
+                    .map((game, index) => (
+                      <motion.div
+                        key={`local-${index}`}
+                        className="bg-yellow-500/10 rounded-lg p-4 border border-yellow-500/20"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                          delay:
+                            (gameState.contractHistory.length + index) * 0.02,
+                        }}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <Loader2 className="w-4 h-4 text-yellow-400 animate-spin" />
+                          <span className="text-yellow-300 text-sm">
+                            Processing on blockchain...
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <div className="flex gap-1">
+                            {game.dice.map((die, i) => (
+                              <span key={i} className="text-lg">
+                                {gameSymbols.find((s) => s.id === die)?.emoji}
+                              </span>
+                            ))}
+                          </div>
+                          <div
+                            className={`font-bold ${
+                              game.winnings > 0
+                                ? "text-green-400"
+                                : "text-red-400"
+                            }`}
+                          >
+                            {game.winnings > 0 ? "+" : ""}
+                            {game.winnings.toFixed(4)} SUI
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+
+                  {/* Empty State */}
                   {gameState.contractHistory.length === 0 &&
+                    gameHistory.length === 0 &&
                     !gameState.isLoadingHistory && (
-                      <div className="text-white/60 text-center py-4">
-                        No contract activity found
+                      <div className="text-white/60 text-center py-8">
+                        <Dices className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <div className="text-lg font-medium mb-2">
+                          No games played yet
+                        </div>
+                        <div className="text-sm">
+                          Start playing to see your game history with blockchain
+                          verification!
+                        </div>
                       </div>
                     )}
 
+                  {/* Loading State */}
                   {gameState.isLoadingHistory && (
-                    <div className="text-white/60 text-center py-4 flex items-center justify-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Loading activity...
+                    <div className="text-white/60 text-center py-8 flex flex-col items-center justify-center gap-3">
+                      <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+                      <div className="text-sm">
+                        Loading blockchain history...
+                      </div>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Refresh Button */}
-              {showContractHistory && (
-                <div className="mt-4 pt-3 border-t border-white/10">
-                  <button
-                    onClick={() => loadContractHistory()}
-                    disabled={gameState.isLoadingHistory}
-                    className="w-full px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 rounded-lg transition-colors disabled:opacity-50 text-sm"
-                  >
-                    {gameState.isLoadingHistory
-                      ? "Loading..."
-                      : "Refresh Activity"}
-                  </button>
+              {/* Quick Stats */}
+              {showHistory && gameState.contractHistory.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <div className="grid grid-cols-3 gap-4 text-center text-sm">
+                    <div>
+                      <div className="text-blue-300 font-bold">
+                        {gameState.contractHistory.length}
+                      </div>
+                      <div className="text-gray-400">Total Games</div>
+                    </div>
+                    <div>
+                      <div className="text-green-300 font-bold">
+                        {
+                          gameState.contractHistory.filter((a) => a.isWin)
+                            .length
+                        }
+                      </div>
+                      <div className="text-gray-400">Wins</div>
+                    </div>
+                    <div>
+                      <div className="text-red-300 font-bold">
+                        {Math.round(
+                          (gameState.contractHistory.filter((a) => a.isWin)
+                            .length /
+                            gameState.contractHistory.length) *
+                            100
+                        ) || 0}
+                        %
+                      </div>
+                      <div className="text-gray-400">Win Rate</div>
+                    </div>
+                  </div>
                 </div>
               )}
             </motion.div>
