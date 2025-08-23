@@ -199,8 +199,8 @@ export default function GamePage() {
         />
 
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Betting Board */}
-          <div className="lg:col-span-2">
+          {/* Left Column: Betting Board + Dice Results */}
+          <div className="lg:col-span-2 space-y-6">
             <BettingBoard
               bets={bets}
               currentBet={currentBet}
@@ -214,16 +214,16 @@ export default function GamePage() {
               getTotalBet={getTotalBet}
               getBetAmount={getBetAmount}
             />
-          </div>
 
-          {/* Game Results & History */}
-          <div className="space-y-6">
             <DiceResults
               isPlaying={gameState.isPlaying}
               lastGameResult={lastGameResult}
               randomnessDetails={randomnessDetails}
             />
+          </div>
 
+          {/* Right Column: Game History (Full Height) */}
+          <div className="lg:col-span-1">
             <GameHistory
               gameState={{
                 contractHistory: gameState.contractHistory,

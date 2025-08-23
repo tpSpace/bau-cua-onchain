@@ -76,7 +76,7 @@ export function GameHistory({
       </div>
 
       <div
-        className="space-y-3 max-h-96 overflow-y-auto game-history-scroll"
+        className="space-y-3 max-h-[600px] overflow-y-auto game-history-scroll"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "#ffd700 rgba(15, 23, 42, 0.6)",
