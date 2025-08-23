@@ -1,9 +1,17 @@
-# Redirect rules for Next.js app with internationalization
-/*    /index.html   200
+# Redirect rules for Next.js static export with internationalization
+# Default locale is 'vi' (Vietnamese) with always prefix
 
-# Handle locale-specific routes
-/en/*  /en/index.html  200
-/vi/*  /vi/index.html  200
+# Handle root path - redirect to default locale (vi)
+/    /vi/   302
 
-# API routes (if any)
-/api/*  /.netlify/functions/:splat  200
+# Handle locale-specific routes (maintain the path structure)
+/en/*  /en/:splat   200
+/vi/*  /vi/:splat   200
+
+# Handle direct game routes
+/game  /vi/game/   302
+/en/game  /en/game/   200  
+/vi/game  /vi/game/   200
+
+# Fallback - any route without locale prefix goes to Vietnamese
+/*  /vi/:splat   200

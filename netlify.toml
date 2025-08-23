@@ -3,7 +3,7 @@
   command = "curl -fsSL https://bun.sh/install | bash && export PATH=\"$HOME/.bun/bin:$PATH\" && bun install && bun run build"
   
   # Directory to publish (where the static files are located after build)
-  publish = ".next"
+  publish = "out"
 
 [build.environment]
   # Node.js version (Bun requires Node 18+)
@@ -18,11 +18,7 @@
   # Enable Next.js telemetry (optional)
   NEXT_TELEMETRY_DISABLED = "1"
 
-# Redirects for Next.js app routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Note: Redirects are handled by public/_redirects file
 
 # Headers for security and performance
 [[headers]]
