@@ -77,6 +77,8 @@ export function useGameContract() {
     
     try {
       const history = await contract.getContractHistory(limit);
+      console.log("useGameContract - loaded history:", history);
+      console.log("useGameContract - history length:", history.length);
       setGameState(prev => ({
         ...prev,
         contractHistory: history,

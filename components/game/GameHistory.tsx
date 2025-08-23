@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   History,
   RotateCcw,
@@ -27,7 +27,23 @@ export function GameHistory({
   gameState,
   onLoadContractHistory,
 }: GameHistoryProps) {
-  const [showHistory, setShowHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(true); // Temporarily auto-show for debugging
+
+  // Debug logging
+  console.log("GameHistory - contractHistory:", gameState.contractHistory);
+  console.log(
+    "GameHistory - contractHistory length:",
+    gameState.contractHistory?.length
+  );
+  console.log("GameHistory - gameHistory:", gameHistory);
+
+  // Auto-load contract history on component mount if not already loaded
+  useEffect(() => {
+    if (!gameState.contractHistory || gameState.contractHistory.length === 0) {
+      console.log("GameHistory - Auto-loading contract history...");
+      onLoadContractHistory();
+    }
+  }, [onLoadContractHistory, gameState.contractHistory]);
 
   return (
     <motion.div
@@ -62,130 +78,138 @@ export function GameHistory({
       {showHistory && (
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {/* Contract History (blockchain data) */}
-          {gameState.contractHistory.map((activity, index) => (
-            <motion.div
-              key={activity.digest}
-              className="bg-white/5 rounded-lg p-4 border border-white/10"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.02 }}
-            >
-              {/* Game Result Header */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Trophy
-                    className={`w-4 h-4 ${
-                      activity.isWin ? "text-green-400" : "text-red-400"
-                    }`}
-                  />
-                  <span className="text-white font-medium">
-                    {activity.isWin ? "🎉 WIN" : "😔 LOSS"}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-gray-400">
-                    {activity.timestamp.toLocaleDateString()}
+          {gameState.contractHistory && gameState.contractHistory.length > 0 ? (
+            gameState.contractHistory.map((activity, index) => (
+              <motion.div
+                key={activity.digest}
+                className="bg-white/5 rounded-lg p-4 border border-white/10"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.02 }}
+              >
+                {/* Game Result Header */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Trophy
+                      className={`w-4 h-4 ${
+                        activity.isWin ? "text-green-400" : "text-red-400"
+                      }`}
+                    />
+                    <span className="text-white font-medium">
+                      {activity.isWin ? "🎉 WIN" : "😔 LOSS"}
+                    </span>
                   </div>
-                  <div className="text-xs text-gray-500">
-                    {activity.timestamp.toLocaleTimeString()}
-                  </div>
-                </div>
-              </div>
-
-              {/* Dice Results */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex gap-2">
-                  {activity.dice.map((die: string, i: number) => (
-                    <div key={i} className="text-center">
-                      <div className="text-2xl">
-                        {gameSymbols.find((s) => s.id === die)?.emoji || "🎲"}
-                      </div>
-                      <div className="text-xs text-gray-400 capitalize">
-                        {die}
-                      </div>
+                  <div className="text-right">
+                    <div className="text-xs text-gray-400">
+                      {activity.timestamp.toLocaleDateString()}
                     </div>
-                  ))}
-                </div>
-                <div className="text-right">
-                  <div
-                    className={`font-bold text-lg ${
-                      activity.isWin ? "text-green-400" : "text-red-400"
-                    }`}
-                  >
-                    {activity.isWin ? "+" : ""}
-                    {activity.winnings.toFixed(4)} SUI
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    Bet: {activity.totalBet.toFixed(4)} SUI
+                    <div className="text-xs text-gray-500">
+                      {activity.timestamp.toLocaleTimeString()}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Transaction Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Player:</span>
-                    <span className="text-gray-300 font-mono">
-                      {activity.player.slice(0, 6)}...
-                      {activity.player.slice(-4)}
-                    </span>
+                {/* Dice Results */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex gap-2">
+                    {activity.dice.map((die: string, i: number) => (
+                      <div key={i} className="text-center">
+                        <div className="text-2xl">
+                          {gameSymbols.find((s) => s.id === die)?.emoji || "🎲"}
+                        </div>
+                        <div className="text-xs text-gray-400 capitalize">
+                          {die}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Gas Used:</span>
-                    <span className="text-gray-300">
-                      {activity.gasUsed.toFixed(6)} SUI
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Profit/Loss:</span>
-                    <span
-                      className={`${
-                        activity.winnings - activity.totalBet > 0
-                          ? "text-green-300"
-                          : "text-red-300"
+                  <div className="text-right">
+                    <div
+                      className={`font-bold text-lg ${
+                        activity.isWin ? "text-green-400" : "text-red-400"
                       }`}
                     >
-                      {activity.winnings - activity.totalBet > 0 ? "+" : ""}
-                      {(activity.winnings - activity.totalBet).toFixed(4)} SUI
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">TX:</span>
-                    <a
-                      href={`https://suiscan.xyz/testnet/tx/${activity.digest}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-400 hover:text-blue-300 underline font-mono"
-                    >
-                      {activity.digest.slice(0, 8)}...
-                    </a>
+                      {activity.isWin ? "+" : ""}
+                      {activity.winnings.toFixed(4)} SUI
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      Bet: {activity.totalBet.toFixed(4)} SUI
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Event Data Badge */}
-              <div className="mt-3 pt-2 border-t border-white/10">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs">
-                    <CheckCircle className="w-3 h-3 text-green-400" />
-                    <span className="text-green-300">Smart Contract Event</span>
+                {/* Transaction Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Player:</span>
+                      <span className="text-gray-300 font-mono">
+                        {activity.player.slice(0, 6)}...
+                        {activity.player.slice(-4)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Gas Used:</span>
+                      <span className="text-gray-300">
+                        {activity.gasUsed.toFixed(6)} SUI
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-400">
-                    Verified on blockchain
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Profit/Loss:</span>
+                      <span
+                        className={`${
+                          activity.winnings - activity.totalBet > 0
+                            ? "text-green-300"
+                            : "text-red-300"
+                        }`}
+                      >
+                        {activity.winnings - activity.totalBet > 0 ? "+" : ""}
+                        {(activity.winnings - activity.totalBet).toFixed(4)} SUI
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">TX:</span>
+                      <a
+                        href={`https://suiscan.xyz/testnet/tx/${activity.digest}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 underline font-mono"
+                      >
+                        {activity.digest.slice(0, 8)}...
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+
+                {/* Event Data Badge */}
+                <div className="mt-3 pt-2 border-t border-white/10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs">
+                      <CheckCircle className="w-3 h-3 text-green-400" />
+                      <span className="text-green-300">
+                        Smart Contract Event
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      Verified on blockchain
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            <div className="text-center text-gray-400 py-4">
+              No blockchain history available
+            </div>
+          )}
 
           {/* Local Game History (if any newer than blockchain) */}
           {gameHistory
             .filter(
               (game) =>
-                !gameState.contractHistory.some(
+                !gameState.contractHistory?.some(
                   (activity) => activity.dice.join("") === game.dice.join("")
                 )
             )
@@ -252,36 +276,38 @@ export function GameHistory({
       )}
 
       {/* Quick Stats */}
-      {showHistory && gameState.contractHistory.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-white/10">
-          <div className="grid grid-cols-3 gap-4 text-center text-sm">
-            <div>
-              <div className="text-blue-300 font-bold">
-                {gameState.contractHistory.length}
+      {showHistory &&
+        gameState.contractHistory &&
+        gameState.contractHistory.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <div className="grid grid-cols-3 gap-4 text-center text-sm">
+              <div>
+                <div className="text-blue-300 font-bold">
+                  {gameState.contractHistory.length}
+                </div>
+                <div className="text-gray-400">Total Games</div>
               </div>
-              <div className="text-gray-400">Total Games</div>
-            </div>
-            <div>
-              <div className="text-green-300 font-bold">
-                {gameState.contractHistory.filter((a: any) => a.isWin).length}
+              <div>
+                <div className="text-green-300 font-bold">
+                  {gameState.contractHistory.filter((a: any) => a.isWin).length}
+                </div>
+                <div className="text-gray-400">Wins</div>
               </div>
-              <div className="text-gray-400">Wins</div>
-            </div>
-            <div>
-              <div className="text-red-300 font-bold">
-                {Math.round(
-                  (gameState.contractHistory.filter((a: any) => a.isWin)
-                    .length /
-                    gameState.contractHistory.length) *
-                    100
-                ) || 0}
-                %
+              <div>
+                <div className="text-red-300 font-bold">
+                  {Math.round(
+                    (gameState.contractHistory.filter((a: any) => a.isWin)
+                      .length /
+                      gameState.contractHistory.length) *
+                      100
+                  ) || 0}
+                  %
+                </div>
+                <div className="text-gray-400">Win Rate</div>
               </div>
-              <div className="text-gray-400">Win Rate</div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </motion.div>
   );
 }

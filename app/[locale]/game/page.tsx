@@ -232,7 +232,10 @@ export default function GamePage() {
 
             <GameHistory
               gameHistory={gameHistory}
-              gameState={gameState}
+              gameState={{
+                contractHistory: gameState.contractHistory,
+                isLoadingHistory: gameState.isLoadingHistory,
+              }}
               onLoadContractHistory={loadContractHistory}
             />
           </div>
