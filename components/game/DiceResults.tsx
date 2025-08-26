@@ -159,15 +159,6 @@ export function DiceResults({
                   <div className="space-y-2">
                     <div>
                       <span className="text-gray-400 text-sm">
-                        Raw Numbers:
-                      </span>
-                      <div className="text-white font-mono text-sm">
-                        [{randomnessDetails.rawNumbers.join(", ")}]
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="text-gray-400 text-sm">
                         Converted Symbols:
                       </span>
                       <div className="text-white font-mono text-sm">
