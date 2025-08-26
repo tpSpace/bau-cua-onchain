@@ -203,7 +203,8 @@ export function GameHistory({
                       : activity.winnings - activity.totalBet === 0
                       ? "="
                       : "-"}
-                    {activity.winnings.toFixed(4)} SUI
+                    {Math.abs(activity.winnings - activity.totalBet).toFixed(4)}{" "}
+                    SUI
                   </motion.div>
                   <div className="text-xs text-slate-400 bg-slate-700/30 px-2 py-1 rounded">
                     Bet: {activity.totalBet.toFixed(4)} SUI

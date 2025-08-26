@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useSuiClient, useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
-import { GameContract, getGameContract, ContractActivity } from '@/lib/game-contract';
+import { getGameContract, ContractActivity } from '@/lib/game-contract';
 import { GameResult, diceToSymbolIds } from '@/lib/contract';
 import { type Bet } from '@/types/game';
 
@@ -94,6 +94,33 @@ export function useGameContract() {
     }
   }, [contract]);
 
+  // Poll until a specific digest appears in history (handles indexer delay)
+  const waitForHistoryDigest = useCallback(async (
+    expectedDigest: string,
+    options?: { limit?: number; maxAttempts?: number; intervalMs?: number }
+  ) => {
+    const limit = options?.limit ?? 100;
+    const maxAttempts = options?.maxAttempts ?? 12; // ~18s at 1500ms
+    const intervalMs = options?.intervalMs ?? 1500;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      try {
+        const history = await contract.getContractHistory(limit);
+        // Update state each attempt so UI shows latest even if not found yet
+        setGameState(prev => ({ ...prev, contractHistory: history, isLoadingHistory: false }));
+
+        const found = history.some(item => item.digest === expectedDigest);
+        if (found) return true;
+      } catch (error) {
+        console.warn('waitForHistoryDigest attempt failed:', error);
+      }
+
+      await new Promise(resolve => setTimeout(resolve, intervalMs));
+    }
+
+    return false;
+  }, [contract]);
+
   // Play the game
   const playGame = useCallback(async (bets: Bet[]) => {
     if (!account || bets.length === 0) {
@@ -103,52 +130,31 @@ export function useGameContract() {
     setGameState(prev => ({ ...prev, isPlaying: true, error: null }));
 
     try {
+      // Estimate gas for the exact transaction we will execute
+      const gasEstimate = await contract.estimateGasForPlay(account, bets);
+      console.log('Estimated gas (SUI):', gasEstimate.estimatedGasSui, 'Recommended budget (MIST):', gasEstimate.recommendedBudgetMist.toString());
+
       // Calculate total bet
       const totalBet = bets.reduce((sum, bet) => sum + bet.amount, 0);
       
-      // Check if user can afford the bet
-      const canAfford = await contract.canAffordBet(account.address, totalBet);
+      // Check if user can afford the bet + estimated gas + small buffer
+      const canAfford = await contract.canAffordBet(account.address, totalBet + gasEstimate.estimatedGasSui + 0.01);
       if (!canAfford) {
-        throw new Error('Insufficient balance for this bet');
-      }
-
-      // Find the best coin to use
-      const coinInfo = await contract.findBestCoinForBet(account.address, totalBet);
-      if (!coinInfo) {
-        throw new Error('No suitable coin found for betting');
+        throw new Error(`Insufficient balance: need bet ${totalBet} SUI + gas ~${gasEstimate.estimatedGasSui.toFixed(4)} SUI`);
       }
 
       let result: any;
       let gameResult: any;
 
-      // Use appropriate play method based on whether splitting is needed
-      if (coinInfo.needsSplit) {
-        console.log(`Playing game with coin split: ${coinInfo.coinId} -> ${totalBet} SUI`);
-        
-        // Use the new single-transaction approach
-        const playResult = await contract.playGameWithSplit(
-          account,
-          bets,
-          coinInfo.coinId,
-          signAndExecute
-        );
-        
-        result = playResult.result;
-        gameResult = playResult.gameResult;
-      } else {
-        console.log(`Playing game with exact coin: ${coinInfo.coinId}`);
-        
-        // Use the exact coin
-        const playResult = await contract.playGame(
-          account,
-          bets,
-          coinInfo.coinId,
-          signAndExecute
-        );
-        
-        result = playResult.result;
-        gameResult = playResult.gameResult;
-      }
+      // Always use single-transaction split-from-gas approach
+      const playResult = await contract.playGameWithSplit(
+        account,
+        bets,
+        signAndExecute
+      );
+      
+      result = playResult.result;
+      gameResult = playResult.gameResult;
 
       setGameState(prev => ({
         ...prev,
@@ -156,8 +162,14 @@ export function useGameContract() {
         isPlaying: false,
       }));
 
-      // Refresh user coins, bank balance, and contract history
-      await Promise.all([loadUserCoins(), loadBankBalance(), loadContractHistory()]);
+      // Refresh user coins, bank balance, and ensure history shows the new game
+      await Promise.all([loadUserCoins(), loadBankBalance()]);
+      // Show loading for history and poll until digest appears (indexer delay safe)
+      setGameState(prev => ({ ...prev, isLoadingHistory: true }));
+      await waitForHistoryDigest(result.digest, { limit: 100, maxAttempts: 12, intervalMs: 1500 });
+
+      // After confirmation appears in history, do a final refresh of balances
+      await Promise.all([loadUserCoins(), loadBankBalance()]);
 
       // Log the final game result for debugging
       console.log('Final game result being returned:', gameResult);
