@@ -149,9 +149,6 @@ export default function GamePage() {
         }));
       }
 
-      // Refresh contract history to get the latest game result
-      await loadContractHistory(100);
-
       setBets([]);
     } catch (error: any) {
       console.error("Game error:", error);

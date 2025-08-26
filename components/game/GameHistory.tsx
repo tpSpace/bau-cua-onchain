@@ -20,24 +20,7 @@ export function GameHistory({
   const [currentLimit, setCurrentLimit] = useState(100);
   const hasLoadedRef = useRef(false);
 
-  // Debug logging
-  console.log("GameHistory - contractHistory:", gameState.contractHistory);
-  console.log(
-    "GameHistory - contractHistory length:",
-    gameState.contractHistory?.length
-  );
-
-  // Auto-load contract history on component mount if not already loaded
-  useEffect(() => {
-    if (
-      !hasLoadedRef.current &&
-      (!gameState.contractHistory || gameState.contractHistory.length === 0)
-    ) {
-      console.log("GameHistory - Auto-loading contract history...");
-      hasLoadedRef.current = true;
-      onLoadContractHistory(currentLimit);
-    }
-  }, [gameState.contractHistory, currentLimit]);
+  // History is loaded and refreshed by parent via hook; no auto-load here
 
   const loadMoreHistory = () => {
     const newLimit = currentLimit + 50;

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { WalletButton } from "@/components/WalletButton";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
