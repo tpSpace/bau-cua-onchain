@@ -60,6 +60,21 @@
     "history": "History",
     "noGames": "No games played yet"
   },
+  "rules": {
+    "title": "Rules",
+    "description": "Bet on symbols, roll three dice, and win based on how many dice match your chosen symbols."
+  },
+  "howToPlay": {
+    "title": "How to Play Bau Cua Tom Ca",
+    "description": "Bau Cua Tom Ca is a fun and simple Vietnamese dice game. Bet on symbols, roll the dice, and win based on the results!",
+    "step1": "Choose one or more symbols (Gourd, Crab, Shrimp, Fish, Rooster, Deer) to place your bets on.",
+    "step2": "Place your wager on the selected symbols. You can bet on multiple symbols in one round.",
+    "step3": "Three dice, each with the six symbols, are rolled.",
+    "step4": "If a symbol you bet on appears on one or more dice, you win! Payouts are based on how many dice show your symbol (e.g., 1:1 for one die, 2:1 for two dice, 3:1 for three dice).",
+    "step5": "Futher information about this game",
+    "step5Link": "Wikipedia",
+    "note": "Note: Unmatched bets are lost, and the game is fast-paced, so get ready for quick rounds!"
+  },
   "footer": {
     "copyright": "© 2025 Vietnamese Dice Game On-Chain. Powered by Sui Blockchain."
   }

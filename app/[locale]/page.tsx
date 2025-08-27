@@ -255,6 +255,39 @@ export default function Home() {
         </motion.div>
       </main>
 
+      {/* Rules */}
+      <motion.div
+        className="mt-16 w-full max-w-4xl mx-auto text-left bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6 md:p-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.2 }}
+      >
+        <h2 className="text-3xl font-bold text-white mb-4">
+          {t("howToPlay.title")}
+        </h2>
+        <p className="text-yellow-100 opacity-90 mb-4">
+          {t("howToPlay.description")}
+        </p>
+        <ul className="list-decimal ml-5 space-y-2 text-yellow-100/90">
+          <li>{t("howToPlay.step1")}</li>
+          <li>{t("howToPlay.step2")}</li>
+          <li>{t("howToPlay.step3")}</li>
+          <li>{t("howToPlay.step4")}</li>
+          <li>
+            {t("howToPlay.step5")}
+            <a
+              href="https://en.wikipedia.org/wiki/B%E1%BA%A7u_cua_c%C3%A1_c%E1%BB%8Dp"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-yellow-200/90"
+            >
+              {" " + t("howToPlay.step5Link")}
+            </a>
+          </li>
+        </ul>
+        <p className="mt-4 text-yellow-200/90">{t("howToPlay.note")}</p>
+      </motion.div>
+
       {/* Footer */}
       <motion.footer
         className="relative z-10 text-center py-8 text-yellow-200 opacity-70"

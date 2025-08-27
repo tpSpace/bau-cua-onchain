@@ -60,6 +60,21 @@
     "history": "Lịch sử",
     "noGames": "Chưa có trò chơi nào"
   },
+  "rules": {
+    "title": "Luật chơi",
+    "description": "Đặt cược vào các biểu tượng, tung ba viên xúc xắc và thắng dựa trên số xúc xắc khớp với biểu tượng bạn chọn."
+  },
+  "howToPlay": {
+    "title": "Cách chơi Bầu Cua Tôm Cá",
+    "description": "Bầu Cua Tôm Cá là một trò chơi xúc xắc Việt Nam đơn giản và thú vị. Đặt cược vào các biểu tượng, tung xúc xắc và thắng dựa trên kết quả!",
+    "step1": "Chọn một hoặc nhiều biểu tượng (Bầu, Cua, Tôm, Cá, Gà, Nai) để đặt cược.",
+    "step2": "Đặt tiền cược vào các biểu tượng đã chọn. Bạn có thể cược vào nhiều biểu tượng trong một vòng.",
+    "step3": "Ba viên xúc xắc, mỗi viên có sáu biểu tượng, sẽ được tung.",
+    "step4": "Nếu biểu tượng bạn cược xuất hiện trên một hoặc nhiều xúc xắc, bạn thắng! Tiền thưởng được tính dựa trên số xúc xắc hiển thị biểu tượng của bạn (ví dụ: 1:1 cho một xúc xắc, 2:1 cho hai xúc xắc, 3:1 cho ba xúc xắc).",
+    "step5": "Thông tin thêm về trò chơi này",
+    "step5Link": "Wikipedia",
+    "note": "Lưu ý: Các cược không khớp sẽ thua, và trò chơi diễn ra nhanh, vì vậy hãy chuẩn bị cho các vòng chơi liên tục!"
+  },
   "footer": {
     "copyright": "© 2025 Bầu Cua Tôm Cá On-Chain. Powered by Sui Blockchain."
   }
